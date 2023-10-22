@@ -1,13 +1,16 @@
-import logo from "./logo.svg";
-import "./App.css";
-import ThreeCube from "./Three/ThreeCube";
+// Router.js
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import LandingPage from "./pages/Landing"; // Create this component
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <ThreeCube />
-    </div>
+    <Router>
+      <Routes>
+        <Route exact path="/" element={<LandingPage />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

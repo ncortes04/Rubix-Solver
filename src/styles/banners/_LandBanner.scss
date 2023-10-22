@@ -1,0 +1,46 @@
+
+.landBanner-container {
+    height: 50em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: rgb(76,61,220);
+    background: linear-gradient(90deg, rgba(76,61,220,1) 1%, rgba(0,212,255,1) 100%);   
+     @media screen and (min-width: $small-screen) {
+        height: 20em;
+    }
+    @media screen and (min-width: $standard-screen) {
+        height: 35em; // Adjust for medium screens
+    }
+    .landBanner-inner{
+        width: 100em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        
+        h2 {
+            @media screen and (min-width: $small-screen) {
+                font-size: $font-size-small-screen;
+            }
+            @media screen and (min-width: $standard-screen) {
+                font-size: $font-size-medium-screen; // Adjust for medium screens
+            }
+    
+            @media screen and (min-width: $large-screen) {
+                font-size: $font-size-large-screen; // Adjust for large screens
+            }
+        }
+        p {
+            color: $secondary-text-color;
+            @media screen and (min-width: $small-screen) {
+                font-size: $p-font-size-small-screen;
+            }
+    
+            @media screen and (min-width: $standard-screen) {
+                font-size: $p-font-size-large-screen; // Adjust for large screens
+            }
+        }
+    }
+}

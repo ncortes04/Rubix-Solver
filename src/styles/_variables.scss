@@ -1,0 +1,37 @@
+// Sizes Variables
+$small-screen: 400px; // Small phones (landscape)
+$standard-screen: 768px;       // Standard phones (portrait) and tablets (portrait)
+$standard-screen-landscape: 1024px; // Standard phones (landscape) and tablets (landscape)
+$large-screen: 1280px;         // Large tablets (landscape) and small desktop screens
+$extra-large-screen: 1440px;   // Extra-large tablets
+$desktop-screen: 1920px;       // Standard desktop screens
+$large-desktop-screen: 2560px; // Large desktop screens
+
+// Font Size Variables
+$p-font-size-small-screen: 16px; // Adjust as needed
+$p-font-size-medium-screen: 20px; // Adjust as needed
+$p-font-size-large-screen: 25px; // Adjust as needed
+
+$font-size-small-screen: 2em;
+$font-size-medium-screen: 3em;
+$font-size-large-screen: 5em;
+// Padding and Margin Variables
+$default-padding: 20px;
+$default-margin: 20px;
+
+// Content Widths
+$content-max-width: 1200px;
+
+// Border Radius
+$border-radius: 4px;
+
+// Z-Index Values
+$z-index-modal: 1000;
+$z-index-dropdown: 500;
+$z-index-header: 100;
+
+// Colors
+$primary-color: #007bff;
+$secondary-color: #ff5722;
+$background-color: #f5f5f5;
+$secondary-text-color: #333;
