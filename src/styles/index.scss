@@ -1,24 +1,45 @@
 // src/styles/index.scss
 
 // Import all your SCSS files here
-@import'mixins';
-@import 'fonts/fonts';
-@import 'variables';
-@import 'banners/LandBanner';
+@import "mixins";
+@import "fonts/fonts";
+@import "variables";
+@import "banners/LandBanner";
+@import "comps/breadCrumbsOne";
+@import "pages/Landing";
 // Add more imports as needed
-.container{
-    width: 100%;
-    height: 100%;
+.container {
+  width: 100%;
+  height: 100%;
 }
 .button-one {
-    @include button-style;
-    background-color: #405cf5;
-    font-size: 18px;
-    &.standard {
-        padding: 0 25px;
-    }
-    &.large {
-        padding: 25px 50px;
-    }
+  @include button-style;
+  background-color: #405cf5;
+  font-size: 18px;
+  &.standard {
+    padding: 0 25px;
+  }
+  &.large {
+    padding: 25px 50px;
+  }
 }
-    
+
+.flex {
+  display: flex;
+}
+.center {
+  align-items: center;
+  justify-content: center;
+}
+
+.p1 {
+  padding: 10px;
+}
+
+.p2 {
+  padding: 20px;
+}
+
+.p3 {
+  padding: 30px;
+}

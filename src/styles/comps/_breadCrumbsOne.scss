@@ -1,0 +1,38 @@
+.breadCrumbsOne-container {
+  height: 30em;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &.reversed {
+    flex-direction: row-reverse;
+  }
+  .breadCrumbsOne-inner {
+    display: flex;
+    width: 70em;
+    gap: 5em;
+    text-align: start;
+    img {
+      height: 350px;
+      width: 350px;
+    }
+    .text-container {
+      display: flex;
+      flex-direction: column;
+      h2 {
+        font-size: $font-size-medium-screen;
+        padding: 0px;
+        margin: 0px;
+        width: fit-content;
+        align-self: center;
+      }
+      p {
+        color: $secondary-text-color;
+        font-size: $p-font-size-medium-screen;
+      }
+      button {
+        width: fit-content;
+      }
+    }
+  }
+}
