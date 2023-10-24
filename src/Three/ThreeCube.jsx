@@ -182,19 +182,20 @@ function RubiksCube() {
 
   const animatingRef = useRef(false); // Use a ref to store animating state
 
-  function performAnimation(targetGroup) {
-    // Example: Rotate the specified group when the button is clicked
-    if (animatingRef.current) {
+  function performAnimation(targetGroup, reversed = false) {
+    if (animating) {
       return;
     }
-    animatingRef.current = true; // Update the ref directly
+    setAnimating(true);
     const rotationDuration = 1000; // Duration in milliseconds
-    const targetRotationY = targetGroup.rotation.y - Math.PI / 2; // Rotate by 90 degrees
+    const targetRotationY = reversed
+      ? targetGroup.rotation.y + Math.PI / 2 // Rotate backward by 90 degrees
+      : targetGroup.rotation.y - Math.PI / 2; // Rotate forward by 90 degrees
     new TWEEN.Tween(targetGroup.rotation)
       .to({ y: targetRotationY }, rotationDuration)
       .easing(TWEEN.Easing.Quadratic.Out)
       .onComplete(() => {
-        animatingRef.current = false; // Update the ref when the animation completes
+        setAnimating(false);
       })
       .start();
   }
@@ -306,15 +307,27 @@ function RubiksCube() {
   return (
     <>
       <div ref={containerRef} />
-      <button onClick={() => performAnimation(bottomLayerGroup)}>
-        Rotate Bottom Layer
-      </button>
-      <button onClick={() => performAnimation(middleLayerGroup)}>
-        Rotate Middle Layer
-      </button>
-      <button onClick={() => performAnimation(topLayerGroup)}>
-        Rotate Top Layer
-      </button>{" "}
+      <>
+        <div ref={containerRef} />
+        <button onClick={() => performAnimation(bottomLayerGroup)}>
+          Rotate Bottom Layer
+        </button>
+        <button onClick={() => performAnimation(bottomLayerGroup, true)}>
+          Rotate Bottom Layer Backward
+        </button>
+        <button onClick={() => performAnimation(middleLayerGroup)}>
+          Rotate Middle Layer
+        </button>
+        <button onClick={() => performAnimation(middleLayerGroup, true)}>
+          Rotate Middle Layer Backward
+        </button>
+        <button onClick={() => performAnimation(topLayerGroup)}>
+          Rotate Top Layer
+        </button>
+        <button onClick={() => performAnimation(topLayerGroup, true)}>
+          Rotate Top Layer Backward
+        </button>
+      </>
     </>
   );
 }
