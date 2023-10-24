@@ -1,9 +1,16 @@
 import React from "react";
 
-const BreadCrumbsSec = ({ imageSrc, title, text, altText, btnText }) => {
+const BreadCrumbsSec = ({
+  imageSrc,
+  title,
+  text,
+  altText,
+  btnText,
+  reversed,
+}) => {
   return (
     <section className="breadCrumbsOne-container">
-      <div className="breadCrumbsOne-inner">
+      <div className={"breadCrumbsOne-inner" + (reversed ? " reversed" : "")}>
         <div className="image-container">
           <img src={imageSrc} alt={altText} />
         </div>

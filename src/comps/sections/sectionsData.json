@@ -1,6 +1,14 @@
 {
-  "title": "How It Works",
-  "altText": "Rubiks Cube Image",
-  "btnText": "Get Started",
-  "bodyText": "Simply scan you cube or enter your cube colors manually. This application uses image recognition to translite your cube into a 2d Maatrix. From there we use a series of algoritmhs to solve your cube. Press this button below to get started"
+  "sectionOne": {
+    "title": "How It Works",
+    "altText": "Rubiks Cube Image",
+    "btnText": "Get Started",
+    "bodyText": "Simply scan you cube or enter your cube colors manually. This application uses image recognition to translite your cube into a 2d Maatrix. From there we use a series of algoritmhs to solve your cube. Press this button below to get started"
+  },
+  "sectionTwo": {
+    "title": "Practice Your Skills",
+    "altText": "Person Holding Rubiks Cube Image",
+    "btnText": "Play Now",
+    "bodyText": "Simply scan you cube or enter your cube colors manually. This application uses image recognition to translite your cube into a 2d Maatrix. From there we use a series of algoritmhs to solve your cube. Press this button below to get started"
+  }
 }
