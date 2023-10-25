@@ -8,6 +8,10 @@ const cubeContainer = new THREE.Group();
 const bottomLayerGroup = new THREE.Group(); // Create a group for the bottom layer
 const middleLayerGroup = new THREE.Group(); // Create a group for the middle layer
 const topLayerGroup = new THREE.Group(); // Create a group for the top layer\
+const redFace = new THREE.Group(); // Create a group for the bottom layer
+const greenFace = new THREE.Group(); // Create a group for the middle layer
+const orangeFace = new THREE.Group(); // Create a group for the top layer\
+const blueface = new THREE.Group(); // Create a group for the top layer\
 
 // Define a hashmap for colors
 // Define a function to rotate the right side of the cube
@@ -36,7 +40,7 @@ const colorMap = {
   y: 0xffff00, // Yellow
   o: 0xffa500, // Orange
 };
-
+// TODO: Add the cubes to faces of layers
 function handleCubeletSides(x, y, left, right, front, back) {
   let materials = Array(6)
     .fill()
@@ -236,9 +240,9 @@ function RubiksCube() {
     });
 
     const bottomFace = [
-      ["w", "w", "w"],
-      ["w", "w", "w"],
-      ["w", "w", "w"],
+      ["y", "y", "y"],
+      ["y", "y", "y"],
+      ["y", "y", "y"],
     ];
 
     const leftFace = [
@@ -248,9 +252,9 @@ function RubiksCube() {
     ];
 
     const rightFace = [
-      ["b", "b", "b"],
-      ["b", "b", "b"],
-      ["b", "r", "b"],
+      ["r", "r", "r"],
+      ["r", "r", "r"],
+      ["r", "r", "r"],
     ];
 
     const frontFace = [
@@ -260,14 +264,14 @@ function RubiksCube() {
     ];
 
     const backFace = [
-      ["r", "r", "r"],
-      ["r", "r", "r"],
-      ["r", "r", "r"],
+      ["b", "b", "b"],
+      ["b", "b", "b"],
+      ["b", "b", "b"],
     ];
     const topFace = [
-      ["y", "y", "y"],
-      ["y", "y", "y"],
-      ["y", "y", "y"],
+      ["w", "w", "w"],
+      ["w", "w", "w"],
+      ["w", "w", "w"],
     ];
 
     generateBottomLayer(
