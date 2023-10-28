@@ -11,26 +11,7 @@ const topLayerGroup = new THREE.Group(); // Create a group for the top layer\
 const redFace = new THREE.Group(); // Create a group for the bottom layer
 const greenFace = new THREE.Group(); // Create a group for the middle layer
 const orangeFace = new THREE.Group(); // Create a group for the top layer\
-const blueface = new THREE.Group(); // Create a group for the top layer\
-
-// Define a hashmap for colors
-// Define a function to rotate the right side of the cube
-function rotateRightSide(cubeContainer, duration) {
-  const targetRotation = Math.PI / 2; // Rotate 90 degrees
-  const cubelets = cubeContainer.children;
-
-  // Create a tween animation for each cubelet
-  cubelets.forEach((cubelet) => {
-    const currentRotation = cubelet.rotation.y;
-    const rotationTween = new TWEEN.Tween({ rotation: currentRotation })
-      .to({ rotation: currentRotation + targetRotation }, duration)
-      .easing(TWEEN.Easing.Quadratic.Out)
-      .onUpdate(function () {
-        cubelet.rotation.y = this.rotation;
-      })
-      .start();
-  });
-}
+const blueFace = new THREE.Group(); // Create a group for the top layer\
 
 const colorMap = {
   r: 0xff0000, // Red
@@ -47,47 +28,56 @@ function handleCubeletSides(x, y, left, right, front, back) {
     .map(
       (_, index) => new THREE.MeshBasicMaterial({ color: 0xffffff }) // Initialize with white color
     );
+  let groupRef = [];
   switch (`${x}-${y}`) {
     case "0-0": // Bottom Left
       // Handle materials for the bottom left cubelet
       materials[5].color.set(colorMap[left[2]]); // Set the color to red (hex value)
       materials[1].color.set(colorMap[front[0]]); // Set the color to red (hex value)
+      groupRef = [greenFace, orangeFace];
       break;
     case "0-1": // Bottom Middle
       // Handle materials for the bottom middle cubelet
       materials[1].color.set(colorMap[front[1]]); // Set the color to red (hex value)
+      groupRef = [orangeFace];
       break;
     case "0-2": // Bottom Right
       // Handle materials for the bottom right cubelet
       materials[4].color.set(colorMap[right[0]]); // Set the color to red (hex value)
       materials[1].color.set(colorMap[front[2]]); // Set the color to red (hex value)
+      groupRef = [orangeFace, redFace];
       break;
     case "1-0": // Middle Left
       // Handle materials for the middle left cubelet
       materials[5].color.set(colorMap[left[1]]); // Set the color to red (hex value)
+      groupRef = [greenFace];
       break;
     case "1-2": // Middle Right
       // Handle materials for the middle right cubelet
       materials[4].color.set(colorMap[right[1]]); // Set the color to red (hex value)
+      groupRef = [redFace];
       break;
     case "2-0": // Top Left
       // Handle materials for the top left cubelet
       materials[5].color.set(colorMap[left[0]]); // Set the color to red (hex value)
       materials[0].color.set(colorMap[back[2]]); // Set the color to red (hex value)
+      groupRef = [greenFace, blueFace];
       break;
     case "2-1": // Top Middle
       // Handle materials for the top middle cubelet
       materials[0].color.set(colorMap[back[1]]); // Set the color to red (hex value)
+      groupRef = [blueFace];
       break;
     case "2-2": // Top Right
       // Handle materials for the top right cubelet
       materials[4].color.set(colorMap[right[2]]); // Set the color to red (hex value)
       materials[0].color.set(colorMap[back[0]]); // Set the color to red (hex value)
+      groupRef = [blueFace, redFace];
       break;
     default:
     // Handle materials for other cubelets (if needed)
   }
-  return materials;
+  return { colorMaterial: materials, groupRef };
 }
 
 // Usage in generateBottomLayer function
@@ -97,7 +87,14 @@ function generateBottomLayer(container, bottom, left, right, front, back) {
 
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-      const colorMaterial = handleCubeletSides(x, y, left, right, front, back);
+      const { colorMaterial, groupRef } = handleCubeletSides(
+        x,
+        y,
+        left,
+        right,
+        front,
+        back
+      );
       colorMaterial[3].color.set(colorMap[bottom[2 - x][y]]);
 
       const cubeletGeometry = new THREE.BoxGeometry(
@@ -113,6 +110,9 @@ function generateBottomLayer(container, bottom, left, right, front, back) {
       );
 
       bottomLayerGroup.add(cubeletMesh); // Add cubelet to the bottom layer group
+      for (const group of groupRef) {
+        group.add(cubeletMesh.clone());
+      }
     }
   }
 
@@ -125,8 +125,15 @@ function generateTopLayer(container, top, left, right, front, back) {
 
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-      const colorMaterial = handleCubeletSides(x, y, left, right, front, back);
-
+      const { colorMaterial, groupRef } = handleCubeletSides(
+        x,
+        y,
+        left,
+        right,
+        front,
+        back
+      );
+      console.log(groupRef);
       // Set the color of the top face
       colorMaterial[2].color.set(colorMap[top[x][y]]);
 
@@ -142,10 +149,12 @@ function generateTopLayer(container, top, left, right, front, back) {
         parseFloat((y * (cubeSize + cubeSpacing) - 1).toFixed(6))
       );
 
-      topLayerGroup.add(cubeletMesh); // Add cubelet to the top layer group
+      topLayerGroup.add(cubeletMesh); // Add the original cubelet to the top layer group
+      for (const group of groupRef) {
+        group.add(cubeletMesh.clone());
+      }
     }
   }
-
   container.add(topLayerGroup); // Add the top layer group to the container
 }
 
@@ -155,8 +164,14 @@ function generateMiddleLayer(container, left, right, front, back) {
 
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-      const colorMaterial = handleCubeletSides(x, y, left, right, front, back);
-
+      const { colorMaterial, groupRef } = handleCubeletSides(
+        x,
+        y,
+        left,
+        right,
+        front,
+        back
+      );
       // For the middle layer, you don't need to set the bottom color
       // colorMaterial[3].color.set(colorMap[bottom[2 - x][y]]);
 
@@ -173,6 +188,9 @@ function generateMiddleLayer(container, left, right, front, back) {
       );
 
       middleLayerGroup.add(cubeletMesh); // Add cubelet to the middle layer group
+      for (const group of groupRef) {
+        group.add(cubeletMesh.clone());
+      }
     }
   }
 
@@ -202,8 +220,9 @@ function RubiksCube() {
         setAnimating(false);
       })
       .start();
+    console.log("Red Face Children:", topLayerGroup.children);
   }
-  useLayoutEffect(() => {
+  useEffect(() => {
     // Create a container to hold the cubelets and set its position to the center
     cubeContainer.position.set(0, 0, 0); // Centered position
     cubeContainer.rotation.y = Math.PI / 1.4; // Rotate 45 degrees around the X-axis
@@ -311,27 +330,35 @@ function RubiksCube() {
   return (
     <>
       <div ref={containerRef} />
-      <>
-        <div ref={containerRef} />
-        <button onClick={() => performAnimation(bottomLayerGroup)}>
-          Rotate Bottom Layer
-        </button>
-        <button onClick={() => performAnimation(bottomLayerGroup, true)}>
-          Rotate Bottom Layer Backward
-        </button>
-        <button onClick={() => performAnimation(middleLayerGroup)}>
-          Rotate Middle Layer
-        </button>
-        <button onClick={() => performAnimation(middleLayerGroup, true)}>
-          Rotate Middle Layer Backward
-        </button>
-        <button onClick={() => performAnimation(topLayerGroup)}>
-          Rotate Top Layer
-        </button>
-        <button onClick={() => performAnimation(topLayerGroup, true)}>
-          Rotate Top Layer Backward
-        </button>
-      </>
+      // Add these buttons to your component
+      <button onClick={() => performAnimation(redFace)}>Rotate Red Face</button>
+      <button onClick={() => performAnimation(greenFace)}>
+        Rotate Green Face
+      </button>
+      <button onClick={() => performAnimation(blueFace)}>
+        Rotate Blue Face
+      </button>
+      <button onClick={() => performAnimation(orangeFace)}>
+        Rotate Orange Face
+      </button>
+      <button onClick={() => performAnimation(bottomLayerGroup)}>
+        Rotate Bottom Layer
+      </button>
+      <button onClick={() => performAnimation(bottomLayerGroup, true)}>
+        Rotate Bottom Layer Backward
+      </button>
+      <button onClick={() => performAnimation(middleLayerGroup)}>
+        Rotate Middle Layer
+      </button>
+      <button onClick={() => performAnimation(middleLayerGroup, true)}>
+        Rotate Middle Layer Backward
+      </button>
+      <button onClick={() => performAnimation(topLayerGroup)}>
+        Rotate Top Layer
+      </button>
+      <button onClick={() => performAnimation(topLayerGroup, true)}>
+        Rotate Top Layer Backward
+      </button>
     </>
   );
 }
