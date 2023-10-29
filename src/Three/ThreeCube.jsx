@@ -1,239 +1,230 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import TWEEN from "tween.js";
+import {
+  colorMap,
+  leftFace,
+  rightFace,
+  backFace,
+  frontFace,
+  topFace,
+  bottomFace,
+  createMaterials,
+  findCubesByCoordinate,
+} from "../utils/ThreeCubeHelper";
 
-const cubeContainer = new THREE.Group();
-
-const bottomLayerGroup = new THREE.Group(); // Create a group for the bottom layer
-const middleLayerGroup = new THREE.Group(); // Create a group for the middle layer
-const topLayerGroup = new THREE.Group(); // Create a group for the top layer\
-const redFace = new THREE.Group(); // Create a group for the bottom layer
-const greenFace = new THREE.Group(); // Create a group for the middle layer
-const orangeFace = new THREE.Group(); // Create a group for the top layer\
-const blueFace = new THREE.Group(); // Create a group for the top layer\
-
-const colorMap = {
-  r: 0xff0000, // Red
-  g: 0x00ff00, // Green
-  b: 0x0000ff, // Blue
-  w: 0xffffff, // White
-  y: 0xffff00, // Yellow
-  o: 0xffa500, // Orange
-};
-// TODO: Add the cubes to faces of layers
-function handleCubeletSides(x, y, left, right, front, back) {
-  let materials = Array(6)
-    .fill()
-    .map(
-      (_, index) => new THREE.MeshBasicMaterial({ color: 0xffffff }) // Initialize with white color
-    );
-  let groupRef = [];
-  switch (`${x}-${y}`) {
-    case "0-0": // Bottom Left
-      // Handle materials for the bottom left cubelet
-      materials[5].color.set(colorMap[left[2]]); // Set the color to red (hex value)
-      materials[1].color.set(colorMap[front[0]]); // Set the color to red (hex value)
-      groupRef = [greenFace, orangeFace];
-      break;
-    case "0-1": // Bottom Middle
-      // Handle materials for the bottom middle cubelet
-      materials[1].color.set(colorMap[front[1]]); // Set the color to red (hex value)
-      groupRef = [orangeFace];
-      break;
-    case "0-2": // Bottom Right
-      // Handle materials for the bottom right cubelet
-      materials[4].color.set(colorMap[right[0]]); // Set the color to red (hex value)
-      materials[1].color.set(colorMap[front[2]]); // Set the color to red (hex value)
-      groupRef = [orangeFace, redFace];
-      break;
-    case "1-0": // Middle Left
-      // Handle materials for the middle left cubelet
-      materials[5].color.set(colorMap[left[1]]); // Set the color to red (hex value)
-      groupRef = [greenFace];
-      break;
-    case "1-2": // Middle Right
-      // Handle materials for the middle right cubelet
-      materials[4].color.set(colorMap[right[1]]); // Set the color to red (hex value)
-      groupRef = [redFace];
-      break;
-    case "2-0": // Top Left
-      // Handle materials for the top left cubelet
-      materials[5].color.set(colorMap[left[0]]); // Set the color to red (hex value)
-      materials[0].color.set(colorMap[back[2]]); // Set the color to red (hex value)
-      groupRef = [greenFace, blueFace];
-      break;
-    case "2-1": // Top Middle
-      // Handle materials for the top middle cubelet
-      materials[0].color.set(colorMap[back[1]]); // Set the color to red (hex value)
-      groupRef = [blueFace];
-      break;
-    case "2-2": // Top Right
-      // Handle materials for the top right cubelet
-      materials[4].color.set(colorMap[right[2]]); // Set the color to red (hex value)
-      materials[0].color.set(colorMap[back[0]]); // Set the color to red (hex value)
-      groupRef = [blueFace, redFace];
-      break;
-    default:
-    // Handle materials for other cubelets (if needed)
-  }
-  return { colorMaterial: materials, groupRef };
-}
-
-// Usage in generateBottomLayer function
-function generateBottomLayer(container, bottom, left, right, front, back) {
+function generateCube(cubeContainer) {
   const cubeSize = 1;
   const cubeSpacing = 0.02; // Adjust the spacing
 
-  for (let x = 0; x < 3; x++) {
-    for (let y = 0; y < 3; y++) {
-      const { colorMaterial, groupRef } = handleCubeletSides(
-        x,
-        y,
-        left,
-        right,
-        front,
-        back
-      );
-      colorMaterial[3].color.set(colorMap[bottom[2 - x][y]]);
+  for (let z = 0; z < 3; z++) {
+    // Bottom to Top
+    for (let x = 0; x < 3; x++) {
+      // Left to Right
+      for (let y = 0; y < 3; y++) {
+        // Front to Back
+        // Create and position the cubelet here
+        const cubeletGeometry = new THREE.BoxGeometry(
+          cubeSize,
+          cubeSize,
+          cubeSize
+        );
 
-      const cubeletGeometry = new THREE.BoxGeometry(
-        cubeSize,
-        cubeSize,
-        cubeSize
-      );
-      const cubeletMesh = new THREE.Mesh(cubeletGeometry, colorMaterial);
-      cubeletMesh.position.set(
-        parseFloat((x * (cubeSize + cubeSpacing) - 1).toFixed(6)),
-        parseFloat((-cubeSize - 0.02).toFixed(6)),
-        parseFloat((y * (cubeSize + cubeSpacing) - 1).toFixed(6))
-      );
+        const { colorMaterial } = createMaterials(
+          x,
+          z,
+          leftFace[2 - y],
+          rightFace[2 - y],
+          frontFace[2 - y],
+          backFace[2 - y]
+        );
 
-      bottomLayerGroup.add(cubeletMesh); // Add cubelet to the bottom layer group
-      for (const group of groupRef) {
-        group.add(cubeletMesh.clone());
+        const cubeletMesh = new THREE.Mesh(cubeletGeometry, colorMaterial);
+        if (y === 0) {
+          cubeletMesh.material[3].color.set(colorMap[bottomFace[z][[x]]]);
+        } else if (y == 2) {
+          cubeletMesh.material[2].color.set(colorMap[topFace[z][[x]]]);
+        }
+        cubeletMesh.position.set(
+          parseFloat((x * (cubeSize + cubeSpacing) - 1).toFixed(6)),
+          parseFloat((y * (cubeSize + cubeSpacing) - 1).toFixed(6)),
+          parseFloat((z * (cubeSize + cubeSpacing) - 1).toFixed(6))
+        );
+
+        cubeContainer.add(cubeletMesh);
       }
     }
   }
-
-  container.add(bottomLayerGroup); // Add the bottom layer group to the container
-}
-
-function generateTopLayer(container, top, left, right, front, back) {
-  const cubeSize = 1;
-  const cubeSpacing = 0.02; // Adjust the spacing
-
-  for (let x = 0; x < 3; x++) {
-    for (let y = 0; y < 3; y++) {
-      const { colorMaterial, groupRef } = handleCubeletSides(
-        x,
-        y,
-        left,
-        right,
-        front,
-        back
-      );
-      console.log(groupRef);
-      // Set the color of the top face
-      colorMaterial[2].color.set(colorMap[top[x][y]]);
-
-      const cubeletGeometry = new THREE.BoxGeometry(
-        cubeSize,
-        cubeSize,
-        cubeSize
-      );
-      const cubeletMesh = new THREE.Mesh(cubeletGeometry, colorMaterial);
-      cubeletMesh.position.set(
-        parseFloat((x * (cubeSize + cubeSpacing) - 1).toFixed(6)),
-        parseFloat((cubeSize + 0.02).toFixed(6)),
-        parseFloat((y * (cubeSize + cubeSpacing) - 1).toFixed(6))
-      );
-
-      topLayerGroup.add(cubeletMesh); // Add the original cubelet to the top layer group
-      for (const group of groupRef) {
-        group.add(cubeletMesh.clone());
-      }
-    }
-  }
-  container.add(topLayerGroup); // Add the top layer group to the container
-}
-
-function generateMiddleLayer(container, left, right, front, back) {
-  const cubeSize = 1;
-  const cubeSpacing = 0.02; // Adjust the spacing
-
-  for (let x = 0; x < 3; x++) {
-    for (let y = 0; y < 3; y++) {
-      const { colorMaterial, groupRef } = handleCubeletSides(
-        x,
-        y,
-        left,
-        right,
-        front,
-        back
-      );
-      // For the middle layer, you don't need to set the bottom color
-      // colorMaterial[3].color.set(colorMap[bottom[2 - x][y]]);
-
-      const cubeletGeometry = new THREE.BoxGeometry(
-        cubeSize,
-        cubeSize,
-        cubeSize
-      );
-      const cubeletMesh = new THREE.Mesh(cubeletGeometry, colorMaterial);
-      cubeletMesh.position.set(
-        parseFloat((x * (cubeSize + cubeSpacing) - 1).toFixed(6)),
-        0,
-        parseFloat((y * (cubeSize + cubeSpacing) - 1).toFixed(6))
-      );
-
-      middleLayerGroup.add(cubeletMesh); // Add cubelet to the middle layer group
-      for (const group of groupRef) {
-        group.add(cubeletMesh.clone());
-      }
-    }
-  }
-
-  container.add(middleLayerGroup); // Add the middle layer group to the container
 }
 
 function RubiksCube() {
   const containerRef = useRef(null);
-  const [animating, setAnimating] = useState(false);
+  const selectedCubeRef = useRef(null);
+  const originalColorsMap = new Map();
   const scene = new THREE.Scene();
-
+  const cubeContainer = new THREE.Group();
+  const raycaster = new THREE.Raycaster();
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  let mouse = new THREE.Vector2();
+  let previousIntersectedObject = null;
   const animatingRef = useRef(false); // Use a ref to store animating state
 
-  function performAnimation(targetGroup, reversed = false) {
-    if (animating) {
-      return;
+  function rotateLayer(axis, layer, direction) {
+    if (animatingRef.current) {
+      return; // Prevent new animations if already animating
     }
-    setAnimating(true);
-    const rotationDuration = 1000; // Duration in milliseconds
-    const targetRotationY = reversed
-      ? targetGroup.rotation.y + Math.PI / 2 // Rotate backward by 90 degrees
-      : targetGroup.rotation.y - Math.PI / 2; // Rotate forward by 90 degrees
-    new TWEEN.Tween(targetGroup.rotation)
-      .to({ y: targetRotationY }, rotationDuration)
+
+    animatingRef.current = true;
+
+    const sameLayerCubes = findCubesByCoordinate(axis, layer, cubeContainer);
+
+    // Create a temporary group to hold the cubes for rotation
+    const tempGroup = new THREE.Group();
+
+    // Add the cubes from the selected layer to the temporary group
+    sameLayerCubes.forEach((cube) => {
+      // Remove the cube from the cubeContainer
+      cubeContainer.remove(cube);
+      // Add the cube to the temporary group
+      tempGroup.add(cube);
+    });
+
+    // Add the temporary group to the cubeContainer for rotation
+    cubeContainer.add(tempGroup);
+
+    // Define the angle of rotation (90 degrees in radians)
+    const angle = (Math.PI / 2) * direction;
+
+    // Define the axis of rotation based on the input axis
+    const rotationAxis = new THREE.Vector3();
+    rotationAxis[axis] = 1;
+
+    // Create a quaternion for the rotation
+    const quaternion = new THREE.Quaternion();
+    quaternion.setFromAxisAngle(rotationAxis, angle);
+
+    // Perform the animation
+    const start = { t: 0 };
+    const end = { t: 1 };
+    new TWEEN.Tween(start)
+      .to(end, 1000) // Duration in milliseconds
       .easing(TWEEN.Easing.Quadratic.Out)
+      .onUpdate(({ t }) => {
+        tempGroup.quaternion.slerpQuaternions(
+          new THREE.Quaternion(),
+          quaternion,
+          t
+        );
+      })
       .onComplete(() => {
-        setAnimating(false);
+        sameLayerCubes.forEach((cube) => {
+          // Remove the cube from the temporary group
+          tempGroup.remove(cube);
+
+          // Apply the rotation to the cube
+          cube.applyMatrix4(tempGroup.matrixWorld);
+
+          // Add the cube back to the cubeContainer
+          cubeContainer.add(cube);
+        });
+
+        // Remove the temporary group from the cubeContainer
+        cubeContainer.remove(tempGroup);
+
+        animatingRef.current = false; // Animation complete
       })
       .start();
-    console.log("Red Face Children:", topLayerGroup.children);
   }
+
+  function handleArrowKeyPress(event) {
+    if (!selectedCubeRef.current) return; // Exit if no cube is selected
+
+    const { x, y, z } = selectedCubeRef.current.position;
+    // Determine layer based on selected cube's position
+
+    switch (event.key) {
+      case "ArrowLeft":
+        rotateLayer("y", y, -1); // Rotate Y layer counter-clockwise
+        break;
+      case "ArrowRight":
+        rotateLayer("y", y, 1); // Rotate Y layer clockwise
+        break;
+      case "ArrowUp":
+        rotateLayer("x", x, -1); // Rotate X layer counter-clockwise
+        break;
+      case "ArrowDown":
+        rotateLayer("x", x, 1); // Rotate X layer clockwise
+        break;
+      default:
+        break;
+    }
+  }
+  function onMouseMove(event) {
+    // Calculate mouse position in normalized device coordinates
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Log the mouse position for debugging
+  }
+  function onCubeClick(event) {
+    // Calculate mouse position in normalized device coordinates
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Raycasting
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(cubeContainer.children);
+
+    if (intersects.length > 0) {
+      const clickedCube = intersects[0].object;
+
+      // Unhighlight the previously selected cube, if any
+      if (selectedCubeRef.current && selectedCubeRef.current !== clickedCube) {
+        const originalProperties = originalColorsMap.get(
+          selectedCubeRef.current.uuid
+        );
+        if (originalProperties) {
+          selectedCubeRef.current.material.forEach((material, index) => {
+            material.color.set(originalProperties[index].color);
+            material.opacity = originalProperties[index].opacity;
+          });
+        }
+      }
+
+      // Store the original properties if not already stored
+      if (!originalColorsMap.has(clickedCube.uuid)) {
+        originalColorsMap.set(
+          clickedCube.uuid,
+          clickedCube.material.map((m) => {
+            return { color: m.color.getHex(), opacity: m.opacity };
+          })
+        );
+      }
+
+      // Apply opacity effect to clicked cube
+      clickedCube.material.forEach((material) => {
+        material.opacity = 0.5; // Set desired opacity for clicked cube
+      });
+
+      // Update the selected cube reference
+      selectedCubeRef.current = clickedCube;
+    }
+  }
+
+  window.addEventListener("keydown", handleArrowKeyPress);
+  window.addEventListener("mousemove", onMouseMove, false);
+  window.addEventListener("click", onCubeClick, false);
   useEffect(() => {
     // Create a container to hold the cubelets and set its position to the center
     cubeContainer.position.set(0, 0, 0); // Centered position
-    cubeContainer.rotation.y = Math.PI / 1.4; // Rotate 45 degrees around the X-axis
     scene.add(cubeContainer);
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
     camera.position.set(4, 3, 5);
     camera.lookAt(0, 0, 0);
 
@@ -258,106 +249,85 @@ function RubiksCube() {
       renderer.setSize(newWidth, newHeight);
     });
 
-    const bottomFace = [
-      ["y", "y", "y"],
-      ["y", "y", "y"],
-      ["y", "y", "y"],
-    ];
-
-    const leftFace = [
-      ["g", "g", "g"],
-      ["g", "g", "g"],
-      ["g", "g", "g"],
-    ];
-
-    const rightFace = [
-      ["r", "r", "r"],
-      ["r", "r", "r"],
-      ["r", "r", "r"],
-    ];
-
-    const frontFace = [
-      ["o", "o", "o"],
-      ["o", "o", "o"],
-      ["o", "o", "o"],
-    ];
-
-    const backFace = [
-      ["b", "b", "b"],
-      ["b", "b", "b"],
-      ["b", "b", "b"],
-    ];
-    const topFace = [
-      ["w", "w", "w"],
-      ["w", "w", "w"],
-      ["w", "w", "w"],
-    ];
-
-    generateBottomLayer(
-      cubeContainer,
-      bottomFace,
-      leftFace[2],
-      rightFace[2],
-      frontFace[2],
-      backFace[2]
-    );
-    generateMiddleLayer(
-      cubeContainer,
-      leftFace[1],
-      rightFace[1],
-      frontFace[1],
-      backFace[1]
-    );
-    generateTopLayer(
-      cubeContainer,
-      topFace,
-      leftFace[0],
-      rightFace[0],
-      frontFace[0],
-      backFace[0]
-    );
+    // Generate the Rubik's Cube
+    generateCube(cubeContainer);
 
     // Render function to create and animate the scene
+    // Initialize a map to store the original colors of the cubelets
+
     const animate = () => {
       requestAnimationFrame(animate);
+
+      // Raycasting for hover effect
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(cubeContainer.children);
+
+      // Reset previous intersected object if it's different from the current one
+      if (
+        previousIntersectedObject &&
+        (!intersects[0] ||
+          previousIntersectedObject !== intersects[0]?.object) &&
+        previousIntersectedObject !== selectedCubeRef.current
+      ) {
+        previousIntersectedObject.material.forEach((material, index) => {
+          const originalProperties = originalColorsMap.get(
+            previousIntersectedObject.uuid
+          );
+          if (originalProperties) {
+            material.color.set(originalProperties[index].color);
+            material.opacity = originalProperties[index].opacity;
+          }
+        });
+        previousIntersectedObject = null;
+      }
+      if (
+        intersects.length > 0 &&
+        intersects[0].object !== selectedCubeRef.current
+      ) {
+        const firstIntersectedObject = intersects[0].object;
+        firstIntersectedObject.material.forEach((material) => {
+          if (!originalColorsMap.has(firstIntersectedObject.uuid)) {
+            originalColorsMap.set(
+              firstIntersectedObject.uuid,
+              firstIntersectedObject.material.map((m) => {
+                return { color: m.color.getHex(), opacity: m.opacity };
+              })
+            );
+          }
+          material.opacity = 0.5; // Change opacity on hover
+        });
+
+        // Update the previous intersected object
+        previousIntersectedObject = firstIntersectedObject;
+      }
+
       renderer.render(scene, camera);
       TWEEN.update(); // Update Tween.js animations
     };
 
     animate();
+
+    return () => {
+      // Cleanup function
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("click", onCubeClick);
+      window.removeEventListener("keydown", handleArrowKeyPress);
+
+      if (containerRef.current) {
+        containerRef.current.removeChild(renderer.domElement);
+      }
+    };
   }, []);
 
   return (
     <>
       <div ref={containerRef} />
-      // Add these buttons to your component
-      <button onClick={() => performAnimation(redFace)}>Rotate Red Face</button>
-      <button onClick={() => performAnimation(greenFace)}>
-        Rotate Green Face
-      </button>
-      <button onClick={() => performAnimation(blueFace)}>
-        Rotate Blue Face
-      </button>
-      <button onClick={() => performAnimation(orangeFace)}>
-        Rotate Orange Face
-      </button>
-      <button onClick={() => performAnimation(bottomLayerGroup)}>
-        Rotate Bottom Layer
-      </button>
-      <button onClick={() => performAnimation(bottomLayerGroup, true)}>
-        Rotate Bottom Layer Backward
-      </button>
-      <button onClick={() => performAnimation(middleLayerGroup)}>
-        Rotate Middle Layer
-      </button>
-      <button onClick={() => performAnimation(middleLayerGroup, true)}>
-        Rotate Middle Layer Backward
-      </button>
-      <button onClick={() => performAnimation(topLayerGroup)}>
-        Rotate Top Layer
-      </button>
-      <button onClick={() => performAnimation(topLayerGroup, true)}>
-        Rotate Top Layer Backward
+      <button
+        onClick={() => {
+          console.log(findCubesByCoordinate("y", 1, cubeContainer));
+        }}
+      >
+        Find Cubes
       </button>
     </>
   );
