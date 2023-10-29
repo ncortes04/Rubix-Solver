@@ -13,7 +13,38 @@ import {
   createMaterials,
   findCubesByCoordinate,
 } from "../utils/ThreeCubeHelper";
+const { Cube } = require("twisty");
+const colorToSticker = {
+  y: "D", // Yellow
+  g: "L", // Green
+  r: "R", // Red
+  o: "F", // Orange
+  b: "B", // Blue
+  w: "U", // White
+};
+// Create a new solved cube instance
+const cube = new Cube();
 
+function solveCube() {
+  const faces = [topFace, rightFace, frontFace, bottomFace, leftFace, backFace];
+  let res = "";
+  for (let i = 0; i < 6; i++) {
+    const face = faces[i];
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        res += colorToSticker[face[row][col]];
+      }
+    }
+  }
+  cube.fromString(res);
+
+  // Solve the cube.
+  const solution = cube.solve();
+
+  // Print the solution.
+  console.log(solution);
+  // Now, you can solve the cube.
+}
 function generateCube(cubeContainer) {
   const cubeSize = 1;
   const cubeSpacing = 0.02; // Adjust the spacing
@@ -74,6 +105,8 @@ function RubiksCube() {
   let mouse = new THREE.Vector2();
   let previousIntersectedObject = null;
   const animatingRef = useRef(false); // Use a ref to store animating state
+  const POSITION_ADJUSTMENT = 0.0499;
+  const ROTATION_DURATION = 1000;
 
   function rotateLayer(axis, layer, direction) {
     if (animatingRef.current) {
@@ -89,40 +122,45 @@ function RubiksCube() {
 
     // Add the cubes from the selected layer to the temporary group
     sameLayerCubes.forEach((cube) => {
-      // Remove the cube from the cubeContainer
-      cubeContainer.remove(cube);
-      // Add the cube to the temporary group
       tempGroup.add(cube);
     });
+
+    // Adjust the position of the temporary group based on axis and direction
+    const positionAdjustment = new THREE.Vector3();
+    if (axis === "y" && direction > 0) {
+      positionAdjustment.set(0, 0, POSITION_ADJUSTMENT);
+    } else if (axis === "y" && direction < 0) {
+      positionAdjustment.set(POSITION_ADJUSTMENT, 0, 0);
+    } else if (axis === "x" && direction < 0) {
+      // Adjust other positions as needed
+      positionAdjustment.set(0, 0, POSITION_ADJUSTMENT);
+    } else if (axis === "x" && direction > 0) {
+      positionAdjustment.set(0, POSITION_ADJUSTMENT, 0);
+    }
+    tempGroup.position.add(positionAdjustment);
 
     // Add the temporary group to the cubeContainer for rotation
     cubeContainer.add(tempGroup);
 
+    // Reset the rotation of the temporary group
+    tempGroup.rotation.set(0, 0, 0);
+
     // Define the angle of rotation (90 degrees in radians)
     const angle = (Math.PI / 2) * direction;
 
-    // Define the axis of rotation based on the input axis
-    const rotationAxis = new THREE.Vector3();
-    rotationAxis[axis] = 1;
-
-    // Create a quaternion for the rotation
-    const quaternion = new THREE.Quaternion();
-    quaternion.setFromAxisAngle(rotationAxis, angle);
+    // Define the target rotation for the group
+    const targetRotation = new THREE.Vector3(
+      axis === "x" ? angle : 0,
+      axis === "y" ? angle : 0,
+      axis === "z" ? angle : 0
+    );
 
     // Perform the animation
-    const start = { t: 0 };
-    const end = { t: 1 };
-    new TWEEN.Tween(start)
-      .to(end, 1000) // Duration in milliseconds
+    new TWEEN.Tween(tempGroup.rotation)
+      .to(targetRotation, ROTATION_DURATION) // Duration in milliseconds
       .easing(TWEEN.Easing.Quadratic.Out)
-      .onUpdate(({ t }) => {
-        tempGroup.quaternion.slerpQuaternions(
-          new THREE.Quaternion(),
-          quaternion,
-          t
-        );
-      })
       .onComplete(() => {
+        // When the rotation is complete, remove the cubes from the temporary group
         sameLayerCubes.forEach((cube) => {
           // Remove the cube from the temporary group
           tempGroup.remove(cube);
@@ -139,7 +177,7 @@ function RubiksCube() {
 
         animatingRef.current = false; // Animation complete
       })
-      .start();
+      .start(); // Start the tween animation
   }
 
   function handleArrowKeyPress(event) {
@@ -324,7 +362,7 @@ function RubiksCube() {
       <div ref={containerRef} />
       <button
         onClick={() => {
-          console.log(findCubesByCoordinate("y", 1, cubeContainer));
+          console.log(solveCube());
         }}
       >
         Find Cubes
