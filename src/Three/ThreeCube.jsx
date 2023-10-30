@@ -13,7 +13,7 @@ import {
   createMaterials,
   findCubesByCoordinate,
 } from "../utils/ThreeCubeHelper";
-const { Cube } = require("twisty");
+const Cube = require("cubejs");
 const colorToSticker = {
   y: "D", // Yellow
   g: "L", // Green
@@ -22,29 +22,7 @@ const colorToSticker = {
   b: "B", // Blue
   w: "U", // White
 };
-// Create a new solved cube instance
-const cube = new Cube();
 
-function solveCube() {
-  const faces = [topFace, rightFace, frontFace, bottomFace, leftFace, backFace];
-  let res = "";
-  for (let i = 0; i < 6; i++) {
-    const face = faces[i];
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 3; col++) {
-        res += colorToSticker[face[row][col]];
-      }
-    }
-  }
-  cube.fromString(res);
-
-  // Solve the cube.
-  const solution = cube.solve();
-
-  // Print the solution.
-  console.log(solution);
-  // Now, you can solve the cube.
-}
 function generateCube(cubeContainer) {
   const cubeSize = 1;
   const cubeSpacing = 0.02; // Adjust the spacing
@@ -179,25 +157,106 @@ function RubiksCube() {
       })
       .start(); // Start the tween animation
   }
+  function solveCube() {
+    const faces = [
+      topFace,
+      rightFace,
+      frontFace,
+      bottomFace,
+      leftFace,
+      backFace,
+    ];
+    let res = "";
+    for (let i = 0; i < 6; i++) {
+      const face = faces[i];
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          res += colorToSticker[face[row][col]];
+        }
+      }
+    }
+    const cubeObject = Cube.fromString(res);
+    Cube.initSolver();
 
+    // Set the cube's state from the provided cubeString.
+    // Solve the cube.
+    const solution = cubeObject.solve();
+
+    // Print the solution.
+    convertSolutionToMoves(solution);
+    // Now, you can solve the cube.
+  }
+  function convertSolutionToMoves(solution) {
+    console.log(solution);
+    const VALID = {
+      U: ["y", 1, -1],
+      "U'": ["y", 1, 1],
+      D: ["y", -1, -1],
+      "D'": ["y", -1, 1],
+      R: ["x", 1, -1],
+      "R'": ["x", 1, 1],
+      L: ["x", -1, -1],
+      "L'": ["x", -1, 1],
+      F: ["z", 1, 1],
+      "F'": ["z", 1, -1],
+      B: ["z", -1, 1],
+      "B'": ["z", -1, 1],
+    };
+    const moves = solution.split(" ");
+    let index = 0;
+
+    function executeNextMove() {
+      if (index < moves.length) {
+        const move = moves[index];
+        index++;
+
+        if (move.slice(-1) === "2") {
+          // Handle double moves
+          const call = VALID[move[0]];
+          rotateLayer(call[0], call[1], call[2]);
+          setTimeout(ROTATION_DURATION);
+          rotateLayer(call[0], call[1], call[2]);
+
+          setTimeout(executeNextMove, ROTATION_DURATION);
+        } else {
+          const call = VALID[move];
+          if (call) {
+            rotateLayer(call[0], call[1], call[2]);
+            setTimeout(executeNextMove, ROTATION_DURATION);
+          } else {
+            console.error(`Invalid move: ${move}`);
+            executeNextMove();
+          }
+        }
+      }
+    }
+
+    executeNextMove(); // Start executing moves
+  }
   function handleArrowKeyPress(event) {
     if (!selectedCubeRef.current) return; // Exit if no cube is selected
 
     const { x, y, z } = selectedCubeRef.current.position;
     // Determine layer based on selected cube's position
-
+    console.log(x);
     switch (event.key) {
-      case "ArrowLeft":
+      case "a":
         rotateLayer("y", y, -1); // Rotate Y layer counter-clockwise
         break;
-      case "ArrowRight":
+      case "d":
         rotateLayer("y", y, 1); // Rotate Y layer clockwise
         break;
-      case "ArrowUp":
+      case "w":
         rotateLayer("x", x, -1); // Rotate X layer counter-clockwise
         break;
-      case "ArrowDown":
+      case "s":
         rotateLayer("x", x, 1); // Rotate X layer clockwise
+        break;
+      case "q":
+        rotateLayer("z", z, 1); // Rotate X layer clockwise
+        break;
+      case "e":
+        rotateLayer("z", z, -1); // Rotate X layer clockwise
         break;
       default:
         break;
